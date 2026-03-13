@@ -12,11 +12,11 @@ const getDatabaseUrl = () => {
 
   // Enforce critical timeouts and pool settings for low-memory servers
   const params = {
-    maxPoolSize: '5',              // Reduced from 10 to save memory
+    maxPoolSize: '30',              // Reduced from 10 to save memory
     maxIdleTimeMS: '60000',        // Close idle connections after 1 minute
-    serverSelectionTimeoutMS: '5000',  // Fail fast if DB unavailable (was 30s)
-    connectTimeoutMS: '5000',      // Fail fast on connection (was 30s)
-    socketTimeoutMS: '10000',      // Close slow queries after 10s (was 45s)
+    serverSelectionTimeoutMS: '15000',  // Fail fast if DB unavailable (was 30s)
+    connectTimeoutMS: '10000',      // Fail fast on connection (was 30s)
+    socketTimeoutMS: '20000',      // Close slow queries after 10s (was 45s)
   };
 
   // Add or update parameters
