@@ -1,0 +1,126 @@
+/* ==========================
+   Carousel base styles
+   ========================== */
+.carousel {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  background: transparent; /* helps if parent has weird styles */
+}
+
+.carouselTrack {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  width: max-content;
+  flex-wrap: nowrap;
+  will-change: transform;
+  transform: translateZ(0);        /* ✅ force GPU compositing */
+  backface-visibility: hidden;     /* ✅ avoid paint per frame */
+}
+
+/* Kick in animation only after JS clones once */
+.animated .carouselTrack {
+  animation: scrollLeft 30s linear infinite;
+}
+
+.carouselLogo {
+  height: 56px;
+  width: auto;
+  flex: 0 0 auto;
+  object-fit: contain;
+  opacity: 0.9;
+  transition: opacity 0.15s ease;
+}
+
+.carouselLogo:hover {
+  opacity: 1;
+  filter: none;
+}
+
+/* duplicate once => move -50% */
+@keyframes scrollLeft {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@media (max-width: 768px) {
+  .carouselTrack { gap: 32px; }
+  .carouselLogo  { height: 44px; }
+}
+
+/* ==========================
+   Marquee-specific styles
+   ========================== */
+.wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  gap: var(--gap, 12px);
+  width: max-content;
+  will-change: transform;
+  animation: scroll-marquee linear infinite;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.reverse {
+  animation-name: scroll-marquee-reverse;
+}
+
+.item {
+  flex: 0 0 auto;
+  width: var(--w, 200px);
+  height: var(--h, 120px);
+  border-radius: var(--r, 12px);
+  overflow: hidden;
+}
+
+.item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  pointer-events: none;
+  display: block;
+}
+
+/* optional blank filler */
+.blank {
+  background: #f2f2f2;
+  width: 100%;
+  height: 100%;
+}
+
+/* pause on hover */
+.pauseHover:hover .track {
+  animation-play-state: paused;
+}
+
+/* framed tile option */
+.framed .item {
+  padding: 4px;
+  background: #0b0f14;
+  border-radius: calc(var(--r, 12px) + 4px);
+}
+
+.framed .item img {
+  border-radius: var(--r, 12px);
+}
+
+/* ==========================
+   Keyframes for marquee
+   ========================== */
+@keyframes scroll-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes scroll-marquee-reverse {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}

@@ -1,0 +1,114 @@
+/* CSS Variables for consistent theming */
+:root {
+  /* Color Palette */
+  --primary-color: #00619A;
+  --primary-hover: #004d7a;
+  --secondary-color: #1D2D4F;
+  --accent-color: #1AA4DD;
+  --text-primary: #00619A;
+  --text-secondary: #1D2D4F;
+  --text-light: #FFFFFF;
+  --text-dark: #333333;
+  --text-muted: #666666;
+  --bg-light: #F8F9FA;
+  --bg-dark: #1D2D4F;
+  --border-color: #E0E0E0;
+  --shadow-light: 0 2px 4px rgba(0,0,0,0.1);
+  --shadow-medium: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-heavy: 0 10px 15px rgba(0,0,0,0.2);
+  
+/* Typography */
+  --font-family: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-heading: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-body: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+  
+  /* Layout */
+  --container-width: 1200px;
+  --header-height: 80px;
+  --footer-padding: 4rem;
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease-in-out;
+  --transition-normal: 0.3s ease-in-out;
+  --transition-slow: 0.5s ease-in-out;
+}
+
+/* Dark theme overrides */
+[data-theme="dark"] {
+  --text-primary: #1AA4DD;
+  --text-secondary: #E0E0E0;
+  --text-light: #FFFFFF;
+  --text-dark: #F8F9FA;
+  --text-muted: #B0B0B0;
+  --bg-light: #121212;
+  --bg-dark: #1E1E1E;
+  --border-color: #333333;
+}
+
+/* Light theme (default) - ensure white background */
+:root {
+  --bg-body: #ffffff;
+  --text-primary: #00619A;
+  --text-secondary: #1D2D4F;
+  --text-light: #FFFFFF;
+  --text-dark: #333333;
+  --text-muted: #666666;
+}
+
+/* Accessibility improvements */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus styles for keyboard accessibility without global selector cost */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border-color: #000000;
+    --text-muted: #000000;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

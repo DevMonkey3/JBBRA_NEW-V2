@@ -1,0 +1,35 @@
+
+> next-app-template@0.0.1 build
+> next build
+
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of E:\React practices\New folder\New folder\package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * E:\React practices\New folder\New folder\JBBC-heroUi-FullStack\package-lock.json
+
+   ▲ Next.js 15.5.9
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+(node:23452) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///E:/React%20practices/New%20folder/New%20folder/JBBC-heroUi-FullStack/tailwind.config.js?id=1768102243325 is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to E:\React practices\New folder\New folder\JBBC-heroUi-FullStack\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ Compiled successfully in 20.7s
+   Skipping linting
+   Checking validity of types ...
+Failed to compile.
+
+./components/admin/AdminMenu/adminMenu.tsx:45:34
+Type error: Object is possibly 'null'.
+
+[0m [90m 43 |[39m       [33m.[39msort((a[33m,[39m b) [33m=>[39m (b[33m?[39m[33m.[39mkey [36mas[39m string)[33m.[39mlength [33m-[39m (a[33m?[39m[33m.[39mkey [36mas[39m string)[33m.[39mlength)
+ [90m 44 |[39m
+[31m[1m>[22m[39m[90m 45 |[39m     [36mreturn[39m matches[33m.[39mlength [33m>[39m [35m0[39m [33m?[39m [matches[[35m0[39m][33m.[39mkey [36mas[39m string] [33m:[39m [[32m'/admin'[39m]
+ [90m    |[39m                                  [31m[1m^[22m[39m
+ [90m 46 |[39m   }[33m,[39m [pathname[33m,[39m items])
+ [90m 47 |[39m
+ [90m 48 |[39m   [36mconst[39m onSelect[33m:[39m [33mMenuProps[39m[[32m'onSelect'[39m] [33m=[39m (e) [33m=>[39m {[0m
+Next.js build worker exited with code: 1 and signal: null

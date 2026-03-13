@@ -1,0 +1,235 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+////////////////////////////////////
+// Enums
+////////////////////////////////////
+
+enum RegistrationStatus {
+  SUBMITTED
+  CONFIRMED
+  CANCELLED
+}
+
+enum JpPrefecture {
+  HOKKAIDO
+  AOMORI
+  IWATE
+  MIYAGI
+  AKITA
+  YAMAGATA
+  FUKUSHIMA
+  IBARAKI
+  TOCHIGI
+  GUNMA
+  SAITAMA
+  CHIBA
+  TOKYO
+  KANAGAWA
+  NIIGATA
+  TOYAMA
+  ISHIKAWA
+  FUKUI
+  YAMANASHI
+  NAGANO
+  GIFU
+  SHIZUOKA
+  AICHI
+  MIE
+  SHIGA
+  KYOTO
+  OSAKA
+  HYOGO
+  NARA
+  WAKAYAMA
+  TOTTORI
+  SHIMANE
+  OKAYAMA
+  HIROSHIMA
+  YAMAGUCHI
+  TOKUSHIMA
+  KAGAWA
+  EHIME
+  KOCHI
+  FUKUOKA
+  SAGA
+  NAGASAKI
+  KUMAMOTO
+  OITA
+  MIYAZAKI
+  KAGOSHIMA
+  OKINAWA
+}
+
+////////////////////////////////////
+// Subscriptions & notifications
+////////////////////////////////////
+
+model Subscription {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  email          String    @unique
+  verifiedAt     DateTime?
+  unsubscribedAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  // relation -> Notification (optional per send)
+  notifications Notification[]
+}
+
+model Notification {
+  id     String   @id @default(auto()) @map("_id") @db.ObjectId
+  // "newsletter" | "seminar" | "announcement"
+  type   String
+  // points to Newsletter / Seminar / Announcement (ObjectId string)
+  refId  String   @db.ObjectId
+  email  String
+  sentAt DateTime @default(now())
+
+  // back-relation to Subscription (optional)
+  subscriptionId String?       @db.ObjectId
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([email], map: "notif_email_idx")
+  @@index([type, refId], map: "notif_type_ref_idx")
+}
+
+////////////////////////////////////
+// Content
+////////////////////////////////////
+
+model Announcement {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  body        String
+  excerpt     String?
+  slug        String   @unique
+  publishedAt DateTime @default(now())
+
+  @@index([publishedAt], map: "announcement_published_idx")
+}
+
+model Newsletter {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  body        String
+  excerpt     String?
+  slug        String   @unique
+  publishedAt DateTime @default(now())
+
+  @@index([publishedAt], map: "newsletter_published_idx")
+}
+
+////////////////////////////////////
+// Seminars + Registrations
+////////////////////////////////////
+
+model Seminar {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  description     String
+  location        String
+  startsAt        DateTime
+  endsAt          DateTime
+  registrationUrl String?
+  publishedAt     DateTime @default(now())
+
+  slug         String  @unique
+  excerpt      String?
+  heroImage    String?
+  thumbnail    String?
+  speakerName  String?
+  speakerTitle String?
+  speakerOrg   String?
+
+  registrations SeminarRegistration[]
+
+  @@index([publishedAt], map: "seminar_published_idx")
+  @@index([startsAt], map: "seminar_starts_idx")
+}
+
+model SeminarRegistration {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  seminarId String  @db.ObjectId
+  seminar   Seminar @relation(fields: [seminarId], references: [id])
+
+  name        String
+  companyName String?
+  phone       String
+  prefecture  JpPrefecture
+  email       String
+  consentPI   Boolean
+
+  status    RegistrationStatus @default(SUBMITTED)
+  createdAt DateTime           @default(now())
+  ip        String?
+  userAgent String?
+  notes     String?
+
+  @@unique([seminarId, email, phone], map: "reg_unique_seminar_email_phone")
+  @@index([seminarId, createdAt], map: "reg_seminar_created_idx")
+  @@index([email], map: "reg_email_idx")
+}
+
+////////////////////////////////////
+// Blog + Likes
+////////////////////////////////////
+
+model BlogPost {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  slug        String   @unique
+  content     String
+  coverImage  String?
+  excerpt     String?
+  publishedAt DateTime @default(now())
+  likeCount   Int      @default(0)
+
+  // back-relation satisfied by Like.post below
+  likes Like[]
+}
+
+model Like {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  postId String   @db.ObjectId
+  post   BlogPost @relation(fields: [postId], references: [id])
+
+  userKey   String
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userKey], map: "post_user_unique")
+  @@index([postId], map: "like_post_idx")
+}
+
+model AdminUser {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  email        String   @unique
+  name         String?
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+////////////////////////////////////
+// Image Storage (for persistent uploads)
+////////////////////////////////////
+
+model UploadedImage {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  filename  String   @unique
+  mimeType  String
+  url       String?  // CDN URL to image in Digital Ocean Spaces
+  data      String?  // Base64 encoded image data (kept temporarily for migration)
+  size      Int
+  createdAt DateTime @default(now())
+}
+

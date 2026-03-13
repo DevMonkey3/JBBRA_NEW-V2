@@ -1,0 +1,114 @@
+
+> next-app-template@0.0.1 build
+> next build
+
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of E:\React practices\New folder\New folder\package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * E:\React practices\New folder\New folder\JBBC-heroUi-FullStack\package-lock.json
+
+   ▲ Next.js 15.5.9
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+(node:33432) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///E:/React%20practices/New%20folder/New%20folder/JBBC-heroUi-FullStack/tailwind.config.js?id=1768255408751 is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to E:\React practices\New folder\New folder\JBBC-heroUi-FullStack\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ Compiled successfully in 9.7s
+   Skipping linting
+   Checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/57) ...
+   Generating static pages (14/57) 
+   Generating static pages (28/57) 
+   Generating static pages (42/57) 
+ ✓ Generating static pages (57/57)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS  Revalidate  Expire
+┌ ○ /                                    31.2 kB         313 kB
+├ ○ /_not-found                            253 B         102 kB
+├ ○ /about                                 253 B         102 kB
+├ ƒ /admin                               8.09 kB         364 kB
+├ ○ /admin/announcements                 2.13 kB         377 kB
+├ ○ /admin/blog                          22.7 kB         400 kB
+├ ○ /admin/login                           918 B         112 kB
+├ ○ /admin/newsletters                   2.18 kB         377 kB
+├ ƒ /admin/profile                       2.56 kB         257 kB
+├ ƒ /admin/seminar                       4.47 kB         155 kB
+├ ○ /admin/test-auth                     5.97 kB         219 kB
+├ ○ /admin/users                         2.45 kB         374 kB
+├ ƒ /api/admin/announcements               253 B         102 kB
+├ ƒ /api/admin/announcements/[id]          253 B         102 kB
+├ ƒ /api/admin/blog                        253 B         102 kB
+├ ƒ /api/admin/blog/[id]                   253 B         102 kB
+├ ƒ /api/admin/newsletters                 253 B         102 kB
+├ ƒ /api/admin/newsletters/[id]            253 B         102 kB
+├ ƒ /api/admin/newsletters/[id]/send       253 B         102 kB
+├ ƒ /api/admin/profile                     253 B         102 kB
+├ ƒ /api/admin/seminars                    253 B         102 kB
+├ ƒ /api/admin/seminars/[id]               253 B         102 kB
+├ ƒ /api/admin/subscribers                 253 B         102 kB
+├ ƒ /api/admin/users                       253 B         102 kB
+├ ƒ /api/admin/users/[id]                  253 B         102 kB
+├ ƒ /api/announcements                     253 B         102 kB
+├ ƒ /api/auth/[...nextauth]                253 B         102 kB
+├ ƒ /api/blog                              253 B         102 kB
+├ ƒ /api/blog/[slug]                       253 B         102 kB
+├ ƒ /api/blog/[slug]/like                  253 B         102 kB
+├ ƒ /api/contact                           253 B         102 kB
+├ ƒ /api/debug                             253 B         102 kB
+├ ƒ /api/download/submit                   253 B         102 kB
+├ ƒ /api/health                            253 B         102 kB
+├ ƒ /api/health/db                         253 B         102 kB
+├ ƒ /api/inquiry-email                     253 B         102 kB
+├ ƒ /api/inquiry/submit                    253 B         102 kB
+├ ƒ /api/notices                           253 B         102 kB
+├ ƒ /api/notices/[slug]                    253 B         102 kB
+├ ƒ /api/seminar/register                  253 B         102 kB
+├ ƒ /api/seminars                          253 B         102 kB
+├ ƒ /api/seminars/[slug]                   253 B         102 kB
+├ ƒ /api/subscribe                         253 B         102 kB
+├ ƒ /api/unsubscribe                       253 B         102 kB
+├ ƒ /api/upload                            253 B         102 kB
+├ ○ /blog                                6.57 kB         254 kB
+├ ƒ /blog/[slug]                         4.63 kB         176 kB
+├ ○ /docs                                  253 B         102 kB
+├ ○ /download                              12 kB         151 kB
+├ ○ /download/success                    2.97 kB         142 kB
+├ ○ /jbbc/about                            253 B         102 kB
+├ ○ /jbbc/careers                          253 B         102 kB
+├ ○ /jbbc/cases                          6.72 kB         232 kB
+├ ○ /jbbc/cases/caseDetail               9.19 kB         238 kB
+├ ○ /jbbc/contact/inquiry                10.7 kB         317 kB
+├ ○ /jbbc/faq                            8.77 kB         228 kB
+├ ○ /jbbc/Info                           3.98 kB         217 kB
+├ ○ /jbbc/Info/company/companyinfo       5.58 kB         213 kB
+├ ○ /jbbc/Info/company/PersonInfo         4.8 kB         218 kB
+├ ○ /jbbc/services                       10.1 kB         226 kB
+├ ○ /legal/privacy                         253 B         102 kB
+├ ○ /notices                             3.07 kB         288 kB
+├ ƒ /notices/[slug]                         8 kB         244 kB
+├ ○ /pricing                               253 B         102 kB
+├ ○ /robots.txt                            253 B         102 kB
+├ ○ /seminar                             6.44 kB         248 kB          5m      1y
+├ ƒ /seminar/[slug]                      8.24 kB         299 kB
+├ ○ /sitemap.xml                           253 B         102 kB
+├ ○ /unsubscribe                         14.6 kB         267 kB
+├ ƒ /uploads/blog/[filename]               253 B         102 kB
+└ ○ /Why                                 6.69 kB         220 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/1255-964395c2b586160a.js      45.6 kB
+  ├ chunks/4bd1b696-100b9d70ed4e49c1.js  54.2 kB
+  └ other shared chunks (total)          2.06 kB
+
+
+ƒ Middleware                             61.4 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

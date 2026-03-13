@@ -1,0 +1,26 @@
+Files needing getCdnUrl import and conversions:
+components/footer/footer.tsx
+components/navbar/navbar.tsx  
+components/homeComponents/content1.tsx
+components/homeComponents/content4.tsx
+components/homeComponents/content5.tsx
+components/homeComponents/content6.tsx
+components/homeComponents/content7.tsx
+components/homeComponents/content8.tsx
+components/homeComponents/content9.tsx
+components/homeComponents/content10.tsx
+components/homeComponents/content11.tsx
+components/components/Header/page.js
+components/servicesComponents/category.tsx
+components/servicesComponents/categoryData.tsx
+components/headers/MainNav.jsx
+app/Why/page.tsx
+app/jbbc/Info/page.tsx
+app/jbbc/Info/company/companyinfo/page.tsx
+app/jbbc/Info/company/PersonInfo/page.tsx
+app/jbbc/cases/page.tsx
+app/jbbc/cases/caseDetail/page.tsx
+app/jbbc/contact/inquiry/page.tsx
+app/blog/page.tsx
+app/jbbc/faq/page.tsx
+app/jbbc/services/page.tsx
