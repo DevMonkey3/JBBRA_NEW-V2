@@ -19,7 +19,6 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(creds) {
         try {
-          // FIX: Added detailed logging to debug production auth issues
           console.log('[AUTH] Login attempt for email:', creds?.email);
 
           if (!creds?.email || !creds?.password) {
@@ -27,7 +26,6 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          // FIX: Check database connection
           const user = await prisma.adminUser.findUnique({
             where: { email: creds.email }
           });
@@ -37,7 +35,6 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          console.log('[AUTH] User found, checking password...');
           const ok = await bcrypt.compare(creds.password, user.passwordHash);
 
           if (!ok) {
@@ -58,7 +55,6 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  // Note: Admin pages removed from JBBRA - admin functionality handled by JBBC
   pages: {
     signIn: '/admin/login',
     error: '/admin/login',
@@ -75,7 +71,6 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      // If token doesn't have user data, return session without user (handles stale/decrypted cookies)
       if (!token?.user) {
         return session;
       }
@@ -83,7 +78,6 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  // FIX: Gracefully handle JWT decryption failures - invalidates stale cookies instead of crashing
   events: {
     async signIn({ user }) {
       console.log('[AUTH] User signed in:', user.email);
@@ -91,14 +85,10 @@ export const authOptions: NextAuthOptions = {
     async signOut({ token }) {
       console.log('[AUTH] User signed out');
     },
-    async error({ message }) {
-      console.log('[AUTH] Auth error:', message);
-    },
+    // FIX: removed 'error' event — not a valid NextAuth EventCallback type
   },
-  // FIX: Handle JWT decryption failures gracefully by returning null instead of throwing
-  // This prevents "decryption operation failed" errors from breaking the app
   jwt: {
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 30 * 24 * 60 * 60,
   },
   debug: process.env.NODE_ENV === 'development',
 }
