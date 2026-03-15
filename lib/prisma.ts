@@ -12,11 +12,12 @@ const getDatabaseUrl = () => {
 
   // Enforce critical timeouts and pool settings for low-memory servers
   const params = {
-    maxPoolSize: '30',              // Reduced from 10 to save memory
-    maxIdleTimeMS: '60000',        // Close idle connections after 1 minute
-    serverSelectionTimeoutMS: '15000',  // Fail fast if DB unavailable (was 30s)
-    connectTimeoutMS: '10000',      // Fail fast on connection (was 30s)
-    socketTimeoutMS: '20000',      // Close slow queries after 10s (was 45s)
+    maxPoolSize: '25',              // Per-app pool (total ~50 for both apps)
+    minPoolSize: '1',               // Keep minimum 1 connection alive
+    maxIdleTimeMS: '60000',         // Close idle connections after 1 minute
+    serverSelectionTimeoutMS: '30000',  // 30s for MongoDB Atlas cold starts
+    connectTimeoutMS: '20000',          // 20s for network latency
+    socketTimeoutMS: '60000',           // 60s for slow queries
   };
 
   // Add or update parameters
