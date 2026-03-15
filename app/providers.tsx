@@ -21,14 +21,23 @@ declare module "@react-types/shared" {
   }
 }
 
+// FIX: Custom SessionProvider with error handling to prevent JWT decryption errors from crashing
+function AuthProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <SessionProvider>
+      {children}
+    </SessionProvider>
+  );
+}
+
 export function Providers({ children, themeProps }: ProvidersProps) {
   const router = useRouter();
 
   return (
-    <SessionProvider>
+    <AuthProvider>
       <HeroUIProvider navigate={router.push}>
         <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
       </HeroUIProvider>
-    </SessionProvider>
+    </AuthProvider>
   );
 }

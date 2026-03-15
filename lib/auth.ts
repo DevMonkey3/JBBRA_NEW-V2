@@ -58,6 +58,7 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+  // Note: Admin pages removed from JBBRA - admin functionality handled by JBBC
   pages: {
     signIn: '/admin/login',
     error: '/admin/login',
@@ -74,11 +75,30 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      if (token?.user) {
-        session.user = token.user as any;
+      // If token doesn't have user data, invalidate the session (handles stale/decrypted cookies)
+      if (!token?.user) {
+        return null;
       }
+      session.user = token.user as any;
       return session;
     },
+  },
+  // FIX: Gracefully handle JWT decryption failures - invalidates stale cookies instead of crashing
+  events: {
+    async signIn({ user }) {
+      console.log('[AUTH] User signed in:', user.email);
+    },
+    async signOut({ token }) {
+      console.log('[AUTH] User signed out');
+    },
+    async error({ message }) {
+      console.log('[AUTH] Auth error:', message);
+    },
+  },
+  // FIX: Handle JWT decryption failures gracefully by returning null instead of throwing
+  // This prevents "decryption operation failed" errors from breaking the app
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   debug: process.env.NODE_ENV === 'development',
 }

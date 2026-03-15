@@ -5,6 +5,12 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
 
+  // FIX: Optimize Ant Design package imports to prevent Webpack barrel optimization issues
+  // WHY: Next.js 15's Webpack incorrectly tree-shakes antd's barrel exports, causing "Cannot read properties of undefined" errors
+  experimental: {
+    optimizePackageImports: ['antd'],
+  },
+
   // Image optimization for responsive delivery
   images: {
     unoptimized: false,
