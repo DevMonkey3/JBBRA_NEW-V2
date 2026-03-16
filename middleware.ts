@@ -10,9 +10,16 @@ export function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the api routes.
+     * Match all request paths except:
      * - api routes (api/)
+     * - static files (_next/static/)
+     * - image optimization (_next/image/)
+     * - favicon and manifest
+     * - static media files (images, fonts, videos)
+     * 
+     * FIX: Exclude static assets to reduce CPU usage on 1GB RAM server
+     * This prevents middleware from running on every image/CSS/JS request
      */
-    '/((?!api/).*)',
+    '/((?!api/|_next/static/|_next/image/|favicon.ico|manifest.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|woff|woff2|ttf|eot|mp4|webm)).*)',
   ],
 };

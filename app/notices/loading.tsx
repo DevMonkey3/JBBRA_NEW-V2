@@ -1,11 +1,14 @@
+import { getCdnUrl } from "@/config/cdn";
+
 export default function NoticesLoading() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
       <div className="flex flex-col items-center gap-6">
         {/* Logo with pulse animation */}
         <div className="relative animate-pulse">
+          {/* Using getCdnUrl() so this stays in sync if the CDN domain changes */}
           <img
-            src="https://bbc-images.sgp1.cdn.digitaloceanspaces.com/Jbbra%20realated%20photo/jbbra%20logo.png"
+            src={getCdnUrl('/jbbra%20realated%20photo/jbbra%20logo.png')}
             alt="Jbbra"
             width={120}
             height={120}

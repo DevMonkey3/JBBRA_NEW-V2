@@ -1,6 +1,26 @@
 import { google } from "googleapis";
 import { NextResponse } from "next/server";
 
+const SPREADSHEET_ID = "1gWhuYtbO0EAKGydQHYcu226hrb_Z2ZmmcP3Y6eG1Fzk";
+
+/**
+ * FIX: Auth client is created once at module load time, not on every request.
+ * The googleapis SDK is heavy — re-initializing it per-request wastes RAM and CPU.
+ * This singleton pattern initializes once when the server starts and reuses the client.
+ */
+const auth = new google.auth.GoogleAuth({
+  credentials: {
+    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+    private_key: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(
+      /\\n/g,
+      "\n"
+    ),
+  },
+  scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+});
+
+const sheets = google.sheets({ version: "v4", auth });
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -45,23 +65,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Set up Google Sheets API
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        private_key: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(
-          /\\n/g,
-          "\n"
-        ),
-      },
-      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-    });
-
-    const sheets = google.sheets({ version: "v4", auth });
-
-    // Your inquiry spreadsheet ID
-    const spreadsheetId = "1gWhuYtbO0EAKGydQHYcu226hrb_Z2ZmmcP3Y6eG1Fzk";
-
     // Add timestamp
     const timestamp = new Date().toLocaleString("ja-JP", {
       timeZone: "Asia/Tokyo",
@@ -99,10 +102,10 @@ export async function POST(request: Request) {
             inquiryContent,
           ];
 
-    // Append data to the sheet
+    // Append data to the sheet using the singleton client
     await sheets.spreadsheets.values.append({
-      spreadsheetId,
-      range: "Sheet1!A:L", // Adjust sheet name if different
+      spreadsheetId: SPREADSHEET_ID,
+      range: "Sheet1!A:L",
       valueInputOption: "USER_ENTERED",
       requestBody: {
         values: [rowData],

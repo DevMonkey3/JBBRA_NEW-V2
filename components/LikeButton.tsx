@@ -1,4 +1,4 @@
-// Client component for blog post like functionality
+// components/LikeButton.tsx
 'use client';
 
 import { useState } from 'react';
@@ -13,32 +13,27 @@ interface LikeButtonProps {
 export default function LikeButton({ postId, initialLikeCount }: LikeButtonProps) {
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [liked, setLiked] = useState(false);
-  const [liking, setLiking] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleLike = async () => {
-    if (liked) return;
+    // Removed: if (liked) return — the API supports toggle (like→unlike→like)
+    // Locking the button after one like meant users could never undo it,
+    // which disagreed with the API's toggle behavior.
+    if (loading) return;
 
-    setLiking(true);
+    setLoading(true);
     try {
-      const res = await fetch(`/api/blog/${postId}/like`, {
-        method: 'POST',
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to like post');
-      }
+      const res = await fetch(`/api/blog/${postId}/like`, { method: 'POST' });
+      if (!res.ok) throw new Error('Failed');
 
       const data = await res.json();
       setLiked(data.liked);
       setLikeCount(data.likeCount);
-
-      if (data.liked) {
-        message.success('記事をいいねしました！');
-      }
-    } catch (error) {
+      message.success(data.liked ? '記事をいいねしました！' : 'いいねを取り消しました');
+    } catch {
       message.error('いいねに失敗しました');
     } finally {
-      setLiking(false);
+      setLoading(false);
     }
   };
 
@@ -52,7 +47,8 @@ export default function LikeButton({ postId, initialLikeCount }: LikeButtonProps
         size="large"
         icon={liked ? <HeartFilled /> : <HeartOutlined />}
         onClick={handleLike}
-        loading={liking}
+        loading={loading}
+        danger={liked}
         className={`
           ${liked
             ? 'bg-red-500 hover:bg-red-600 border-red-500 text-white shadow-lg shadow-red-200'
@@ -60,7 +56,6 @@ export default function LikeButton({ postId, initialLikeCount }: LikeButtonProps
           }
           px-10 py-6 h-auto text-lg md:text-xl font-semibold rounded-full transition-all duration-300
         `}
-        danger={liked}
       >
         {liked ? 'いいね済み' : 'いいね'} ({likeCount})
       </Button>

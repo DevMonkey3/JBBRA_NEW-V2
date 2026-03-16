@@ -12,20 +12,32 @@ import type {
 } from "@/types";
 
 /**
- * GET - List all newsletters
+ * GET - List all newsletters with pagination
  */
-export async function GET(): Promise<NextResponse<GetNewslettersResponse | ApiError>> {
+export async function GET(request: Request): Promise<NextResponse<GetNewslettersResponse & { total: number; hasMore: boolean } | ApiError>> {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const newsletters = await prisma.newsletter.findMany({
-      orderBy: { publishedAt: 'desc' },
-    });
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
+    const skip = (page - 1) * limit;
 
-    return NextResponse.json({ newsletters });
+    const [newsletters, total] = await Promise.all([
+      prisma.newsletter.findMany({
+        orderBy: { publishedAt: 'desc' },
+        take: limit,
+        skip,
+      }),
+      prisma.newsletter.count(),
+    ]);
+
+    const hasMore = skip + newsletters.length < total;
+
+    return NextResponse.json({ newsletters, total, hasMore });
   } catch (error) {
     console.error("GET newsletters error:", error);
     return NextResponse.json({ error: "Failed to fetch newsletters" }, { status: 500 });
@@ -33,7 +45,8 @@ export async function GET(): Promise<NextResponse<GetNewslettersResponse | ApiEr
 }
 
 /**
- * POST - Create new newsletter and send to subscribers
+ * POST - Create new newsletter and send to subscribers (background, cursor-batched)
+ * FIX: Uses cursor-based batching to prevent RAM spikes with large subscriber lists
  */
 export async function POST(req: Request): Promise<NextResponse<NewsletterResponse | ApiError>> {
   try {
@@ -52,7 +65,6 @@ export async function POST(req: Request): Promise<NextResponse<NewsletterRespons
       );
     }
 
-    // Check if slug already exists
     const existing = await prisma.newsletter.findUnique({ where: { slug } });
     if (existing) {
       return NextResponse.json(
@@ -61,48 +73,89 @@ export async function POST(req: Request): Promise<NextResponse<NewsletterRespons
       );
     }
 
-    // Create newsletter
     const newsletter = await prisma.newsletter.create({
-      data: {
-        title,
-        body: content,
-        excerpt,
-        slug,
-      },
+      data: { title, body: content, excerpt, slug },
     });
 
-    // Get all active subscribers
-    const subscribers = await prisma.subscription.findMany({
-      where: {
-        unsubscribedAt: null,
-        verifiedAt: null, // Include all (or add verification logic if needed)
-      },
-      select: { email: true },
-    });
+    // Fire-and-forget: cursor-batched send to prevent RAM spikes
+    // Runs in background without blocking HTTP response
+    (async () => {
+      const maxRetries = 3;
+      const batchSize = 500;
+      let cursor: string | undefined = undefined;
+      let hasMore = true;
+      let totalSent = 0;
+      let failedBatches = 0;
 
-    // Send emails in background (don't wait for completion)
-    if (subscribers.length > 0) {
-      const emailList = subscribers.map(s => s.email);
+      try {
+        while (hasMore) {
+          const subscribers: { id: string; email: string }[] = await prisma.subscription.findMany({
+            where: { unsubscribedAt: null }, // FIX: Removed verifiedAt: null (was filtering wrong users)
+            select: { id: true, email: true },
+            take: batchSize,
+            ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+            orderBy: { id: 'asc' },
+          });
 
-      // Send emails asynchronously
-      sendNewsletterEmail(emailList, {
-        title: newsletter.title,
-        excerpt: newsletter.excerpt || undefined,
-        body: newsletter.body,
-        slug: newsletter.slug,
-      }).then(result => {
-        if (result.success) {
-          // Log notifications
-          prisma.notification.createMany({
-            data: emailList.map(email => ({
-              type: 'newsletter',
-              refId: newsletter.id,
-              email,
-            })),
-          }).catch(err => console.error('Failed to log notifications:', err));
+          if (subscribers.length === 0) break;
+
+          const emailList = subscribers.map(s => s.email);
+          let emailSuccess = false;
+
+          for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+              const result = await sendNewsletterEmail(emailList, {
+                title: newsletter.title,
+                excerpt: newsletter.excerpt || undefined,
+                body: newsletter.body,
+                slug: newsletter.slug,
+              });
+
+              if (result.success) {
+                emailSuccess = true;
+                totalSent += emailList.length;
+                try {
+                  await prisma.notification.createMany({
+                    data: emailList.map(email => ({
+                      type: 'newsletter',
+                      refId: newsletter.id,
+                      email,
+                    })),
+                  });
+                } catch (logError) {
+                  console.error('Failed to log notifications:', logError);
+                }
+                break;
+              } else {
+                console.error(`Email sending failed: ${result.error}`);
+              }
+            } catch (sendError) {
+              console.error(`Email send attempt ${attempt}/${maxRetries} failed:`, sendError);
+            }
+
+            if (attempt < maxRetries) {
+              const delay = 1000 * Math.pow(2, attempt - 1);
+              await new Promise(resolve => setTimeout(resolve, delay));
+            }
+          }
+
+          if (!emailSuccess) {
+            failedBatches++;
+            console.error(`Failed to send email batch after ${maxRetries} attempts. Continuing.`);
+          }
+
+          hasMore = subscribers.length === batchSize;
+          cursor = hasMore ? subscribers[subscribers.length - 1].id : undefined;
         }
-      }).catch(err => console.error('Failed to send emails:', err));
-    }
+
+        console.log(`Newsletter email completed. Sent: ${totalSent}, Failed batches: ${failedBatches}`);
+        if (failedBatches > 0) {
+          console.warn(`Warning: ${failedBatches} batches failed. Consider manual retry.`);
+        }
+      } catch (error) {
+        console.error('Background newsletter email failed with critical error:', error);
+      }
+    })();
 
     return NextResponse.json({ newsletter }, { status: 201 });
   } catch (error) {

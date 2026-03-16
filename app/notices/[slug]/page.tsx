@@ -6,7 +6,6 @@
  */
 'use client'
 
-import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, Tag, Typography, Divider, Spin } from 'antd';
 import {
@@ -17,6 +16,8 @@ import {
   EnvironmentOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
+import useSWR from 'swr';
+import DOMPurify from 'isomorphic-dompurify';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -55,78 +56,32 @@ interface NoticeData {
   type: ContentType;
 }
 
+// Static config outside component — pure data, no reason to recreate per render
+const TYPE_CONFIG: Record<ContentType, { color: string; label: string; icon: React.ReactNode }> = {
+  newsletter:   { color: '#1890ff', label: 'ニュースレター', icon: <MailOutlined /> },
+  seminar:      { color: '#52c41a', label: 'セミナー',       icon: <CalendarOutlined /> },
+  announcement: { color: '#fa8c16', label: 'お知らせ',       icon: <NotificationOutlined /> },
+};
+
+const fetcher = (url: string) => fetch(url).then(r => {
+  if (!r.ok) throw Object.assign(new Error('fetch failed'), { status: r.status });
+  return r.json();
+});
+
 export default function NoticeDetailPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug as string;
 
-  const [data, setData] = useState<NoticeData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
-
-  useEffect(() => {
-    if (!slug) return;
-
-    const fetchNotice = async () => {
-      try {
-        // SEO: Fetch notice data from API
-        const res = await fetch(`/api/notices/${slug}`);
-
-        if (!res.ok) {
-          if (res.status === 404) {
-            setNotFound(true);
-          }
-          throw new Error('Failed to fetch notice');
-        }
-
-        const result: NoticeData = await res.json();
-        setData(result);
-      } catch (error) {
-        console.error('Error fetching notice:', error);
-        setNotFound(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNotice();
-  }, [slug]);
-
-  /**
-   * SEO: Type configuration for visual indicators
-   * Returns icon, color, and label for each content type
-   */
-  const getTypeConfig = (type: ContentType) => {
-    switch (type) {
-      case 'newsletter':
-        return {
-          color: '#1890ff',
-          label: 'ニュースレター',
-          icon: <MailOutlined />,
-        };
-      case 'seminar':
-        return {
-          color: '#52c41a',
-          label: 'セミナー',
-          icon: <CalendarOutlined />,
-        };
-      case 'announcement':
-        return {
-          color: '#fa8c16',
-          label: 'お知らせ',
-          icon: <NotificationOutlined />,
-        };
-      default:
-        return {
-          color: '#8c8c8c',
-          label: '不明',
-          icon: <NotificationOutlined />,
-        };
-    }
-  };
+  // FIX: SWR replaces useEffect+useState: automatic caching, deduplication, no re-fetch on every mount
+  const { data, isLoading, error } = useSWR<NoticeData>(
+    slug ? `/api/notices/${slug}` : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  );
 
   // Loading state
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Spin size="large" />
@@ -134,8 +89,10 @@ export default function NoticeDetailPage() {
     );
   }
 
+  const is404 = !isLoading && (error?.status === 404 || !data);
+
   // 404 state
-  if (notFound || !data) {
+  if (is404 || error) {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4 md:px-8 lg:px-16">
         <div className="max-w-4xl mx-auto text-center">
@@ -151,14 +108,21 @@ export default function NoticeDetailPage() {
     );
   }
 
-  const { content, type } = data;
-  const typeConfig = getTypeConfig(type);
+  const { content, type } = data!;
+  const typeConfig = TYPE_CONFIG[type] ?? { color: '#8c8c8c', label: '不明', icon: <NotificationOutlined /> };
   const date = new Date(content.publishedAt);
 
   // Type guards for content type - fixed to properly narrow types
   const seminarContent = type === 'seminar' ? (content as Seminar) : null;
   const announcementContent = type === 'announcement' ? (content as Announcement) : null;
   const newsletterContent = type === 'newsletter' ? (content as Newsletter) : null;
+
+  // FIX: Sanitize HTML body before rendering — prevents stored XSS from admin-authored content
+  const rawHtml = seminarContent?.description
+    ?? announcementContent?.body
+    ?? newsletterContent?.body
+    ?? '';
+  const safeHtml = DOMPurify.sanitize(rawHtml);
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 md:px-8 lg:px-16">
@@ -282,17 +246,10 @@ export default function NoticeDetailPage() {
           )}
 
           {/* SEO: Main content body with semantic article structure */}
+          {/* safeHtml is DOMPurify-sanitized — XSS safe */}
           <div
             className="prose max-w-none"
-            dangerouslySetInnerHTML={{
-              __html: seminarContent
-                ? seminarContent.description
-                : announcementContent
-                ? announcementContent.body
-                : newsletterContent
-                ? newsletterContent.body
-                : '',
-            }}
+            dangerouslySetInnerHTML={{ __html: safeHtml }}
           />
         </Card>
 

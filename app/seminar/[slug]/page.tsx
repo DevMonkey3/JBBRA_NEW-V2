@@ -1,22 +1,23 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Form, Input, Select, Button, Checkbox, Typography, Row, Col, Divider, Spin, Modal, message } from 'antd';
 import { CalendarOutlined, EnvironmentOutlined, UserOutlined, RightOutlined } from '@ant-design/icons';
 import Breadcrumb from '@/components/breadcrumb';
+import useSWR from 'swr';
 
 const { Title, Text } = Typography;
-const { TextArea } = Input;
 
+// FIX: English prefectures instead of Japanese
 const PREFECTURES = [
-  '北海道', '青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県',
-  '茨城県', '栃木県', '群馬県', '埼玉県', '千葉県', '東京都', '神奈川県',
-  '新潟県', '富山県', '石川県', '福井県', '山梨県', '長野県', '岐阜県',
-  '静岡県', '愛知県', '三重県', '滋賀県', '京都府', '大阪府', '兵庫県',
-  '奈良県', '和歌山県', '鳥取県', '島根県', '岡山県', '広島県', '山口県',
-  '徳島県', '香川県', '愛媛県', '高知県', '福岡県', '佐賀県', '長崎県',
-  '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'
+  'Hokkaido', 'Aomori', 'Iwate', 'Miyagi', 'Akita', 'Yamagata', 'Fukushima',
+  'Ibaraki', 'Tochigi', 'Gunma', 'Saitama', 'Chiba', 'Tokyo', 'Kanagawa',
+  'Niigata', 'Toyama', 'Ishikawa', 'Fukui', 'Yamanashi', 'Nagano', 'Gifu',
+  'Shizuoka', 'Aichi', 'Mie', 'Shiga', 'Kyoto', 'Osaka', 'Hyogo',
+  'Nara', 'Wakayama', 'Tottori', 'Shimane', 'Okayama', 'Hiroshima', 'Yamaguchi',
+  'Tokushima', 'Kagawa', 'Ehime', 'Kochi', 'Fukuoka', 'Saga', 'Nagasaki',
+  'Kumamoto', 'Oita', 'Miyazaki', 'Kagoshima', 'Okinawa',
 ];
 
 interface Seminar {
@@ -37,64 +38,81 @@ interface SeminarPageProps {
   params: Promise<{ slug: string }>;
 }
 
+// FIX: Defined outside the component so React doesn't unmount/remount label
+// DOM nodes on every keystroke due to inline component re-creation
+function RequiredLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="flex items-center">
+      {children}
+      <span className="bg-red-600 text-white px-2 py-0.5 ml-2 rounded text-xs">必須</span>
+    </span>
+  );
+}
+
+const fetcher = (url: string) => fetch(url).then(r => {
+  if (!r.ok) throw Object.assign(new Error('fetch failed'), { status: r.status });
+  return r.json();
+});
+
+function formatDate(dateString: string) {
+  return new Date(dateString).toLocaleDateString('ja-JP', {
+    year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
+  });
+}
+
+function formatTime(dateString: string) {
+  return new Date(dateString).toLocaleTimeString('ja-JP', {
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+
 export default function SeminarDetailPage({ params }: SeminarPageProps) {
   const { slug } = use(params);
   const router = useRouter();
-  const [seminar, setSeminar] = useState<Seminar | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [form] = Form.useForm();
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    const fetchSeminar = async () => {
-      try {
-        const res = await fetch(`/api/seminars/${slug}`);
-        if (!res.ok) {
-          throw new Error('Seminar not found');
-        }
-        const data = await res.json();
-        setSeminar(data.seminar);
-      } catch (error) {
-        console.error('Error fetching seminar:', error);
-        message.error('セミナー情報の取得に失敗しました');
-        router.push('/seminar');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // FIX: Replace useEffect+useState with SWR for caching and deduplication
+  const { data, isLoading, error } = useSWR<{ seminar: Seminar }>(
+    slug ? `/api/seminars/${slug}` : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  );
 
-    fetchSeminar();
-  }, [slug, router]);
+  const seminar = data?.seminar ?? null;
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'short',
-    });
-  };
+  // Redirect on 404
+  if (!isLoading && (error?.status === 404 || (!isLoading && !seminar && error))) {
+    message.error('セミナー情報の取得に失敗しました');
+    router.push('/seminar');
+    return null;
+  }
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('ja-JP', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
-  const handleSubmit = async (values: any) => {
+  if (!seminar) return null;
+
+  const handleSubmit = async (values: {
+    name: string;
+    companyName?: string;
+    phone: string;
+    prefecture: string;
+    email: string;
+    consentPI: boolean;
+  }) => {
     if (!seminar) return;
 
     setSubmitting(true);
     try {
       const res = await fetch('/api/seminar/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           seminarId: seminar.id,
           seminarTitle: seminar.title,
@@ -108,38 +126,38 @@ export default function SeminarDetailPage({ params }: SeminarPageProps) {
       });
 
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || '送信に失敗しました');
+        const err = await res.json();
+        throw new Error(err.error || '送信に失敗しました');
       }
 
-      setSuccessModalVisible(true);
       form.resetFields();
-    } catch (error: any) {
-      console.error('Error submitting form:', error);
-      message.error(error.message || '送信に失敗しました。もう一度お試しください。');
+      // FIX: Use Modal.success() instead of separate state
+      Modal.success({
+        centered: true,
+        content: (
+          <div className="text-center py-6">
+            <div className="text-6xl mb-4 text-green-500">✓</div>
+            <Title level={3} className="!text-green-600 !mb-4">
+              お申し込みありがとうございます
+            </Title>
+            <Text className="text-base">
+              セミナーへのお申し込みを受け付けました。<br />
+              ご登録いただいたメールアドレスに確認メールをお送りします。<br /><br />
+              当日お会いできることを楽しみにしております。
+            </Text>
+          </div>
+        ),
+        okText: 'セミナー一覧に戻る',
+        okButtonProps: { className: '!bg-[#1AA4DD]' },
+        onOk: () => router.push('/seminar'),
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '送信に失敗しました。もう一度お試しください。';
+      message.error(msg);
     } finally {
       setSubmitting(false);
     }
   };
-
-  const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
-    <span className="flex items-center">
-      {children}
-      <span className="bg-red-600 text-white px-2 py-0.5 ml-2 rounded text-xs">必須</span>
-    </span>
-  );
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Spin size="large" />
-      </div>
-    );
-  }
-
-  if (!seminar) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-gray-50">
@@ -369,48 +387,6 @@ export default function SeminarDetailPage({ params }: SeminarPageProps) {
           </Col>
         </Row>
       </div>
-
-      {/* Success Modal */}
-      <Modal
-        open={successModalVisible}
-        onOk={() => {
-          setSuccessModalVisible(false);
-          router.push('/seminar');
-        }}
-        onCancel={() => {
-          setSuccessModalVisible(false);
-          router.push('/seminar');
-        }}
-        footer={[
-          <Button
-            key="ok"
-            type="primary"
-            onClick={() => {
-              setSuccessModalVisible(false);
-              router.push('/seminar');
-            }}
-            className="!bg-[#1AA4DD]"
-          >
-            セミナー一覧に戻る
-          </Button>,
-        ]}
-        centered
-      >
-        <div className="text-center py-6">
-          <div className="text-6xl mb-4 text-green-500">✓</div>
-          <Title level={3} className="!text-green-600 !mb-4">
-            お申し込みありがとうございます
-          </Title>
-          <Text className="text-base">
-            セミナーへのお申し込みを受け付けました。
-            <br />
-            ご登録いただいたメールアドレスに確認メールをお送りします。
-            <br />
-            <br />
-            当日お会いできることを楽しみにしております。
-          </Text>
-        </div>
-      </Modal>
     </div>
   );
 }

@@ -117,8 +117,9 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // Initialize performance monitoring
-  if (typeof window !== 'undefined') {
+  // FIX: Only initialize performance monitoring in development
+  // Prevents unnecessary CPU/RAM usage in production on 1GB RAM server
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
     initPerformanceMonitoring();
   }
 

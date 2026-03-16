@@ -39,7 +39,7 @@ export async function GET(
 }
 
 /**
- * PUT - Update blog post
+ * PUT - Update blog post (including slug)
  */
 export async function PUT(
   req: Request,
@@ -53,13 +53,29 @@ export async function PUT(
 
     const { id } = await params;
     const body: CreateBlogPostRequest = await req.json();
-    const { title, content, coverImage, excerpt } = body;
+    const { title, content, coverImage, excerpt, slug } = body;
 
     if (!title || !content) {
       return NextResponse.json(
         { error: "Title and content are required" },
         { status: 400 }
       );
+    }
+
+    const existing = await prisma.blogPost.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: "Blog post not found" }, { status: 404 });
+    }
+
+    // FIX: If slug is changing, make sure it's not taken
+    if (slug && slug !== existing.slug) {
+      const conflict = await prisma.blogPost.findUnique({ where: { slug } });
+      if (conflict) {
+        return NextResponse.json(
+          { error: "Blog post with this slug already exists" },
+          { status: 409 }
+        );
+      }
     }
 
     const post = await prisma.blogPost.update({
@@ -69,6 +85,8 @@ export async function PUT(
         content,
         coverImage: coverImage || null,
         excerpt: excerpt || null,
+        // FIX: Only update slug if provided and different
+        ...(slug && slug !== existing.slug ? { slug } : {}),
       },
     });
 
@@ -80,7 +98,7 @@ export async function PUT(
 }
 
 /**
- * DELETE - Delete blog post
+ * DELETE - Delete blog post, related likes and notifications
  */
 export async function DELETE(
   req: Request,
@@ -94,14 +112,11 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Delete related likes first
-    await prisma.like.deleteMany({
-      where: { postId: id },
-    });
+    // FIX: Delete related records first
+    await prisma.like.deleteMany({ where: { postId: id } });
+    await prisma.notification.deleteMany({ where: { refId: id, type: 'blog' } });
 
-    await prisma.blogPost.delete({
-      where: { id },
-    });
+    await prisma.blogPost.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

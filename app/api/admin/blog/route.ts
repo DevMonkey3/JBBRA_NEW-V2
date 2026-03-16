@@ -37,20 +37,35 @@ export interface ApiError {
 }
 
 /**
- * GET - List all blog posts (admin view)
+ * GET - List all blog posts (admin view) with pagination
+ * Query params:
+ *   - page: Page number (default: 1)
+ *   - limit: Posts per page (default: 20, max: 100)
  */
-export async function GET(): Promise<NextResponse<GetBlogPostsResponse | ApiError>> {
+export async function GET(request: Request): Promise<NextResponse<GetBlogPostsResponse & { total: number; hasMore: boolean } | ApiError>> {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const posts = await prisma.blogPost.findMany({
-      orderBy: { publishedAt: 'desc' },
-    });
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
+    const skip = (page - 1) * limit;
 
-    return NextResponse.json({ posts });
+    const [posts, total] = await Promise.all([
+      prisma.blogPost.findMany({
+        orderBy: { publishedAt: 'desc' },
+        take: limit,
+        skip,
+      }),
+      prisma.blogPost.count(),
+    ]);
+
+    const hasMore = skip + posts.length < total;
+
+    return NextResponse.json({ posts, total, hasMore });
   } catch (error) {
     console.error("GET blog posts error:", error);
     return NextResponse.json({ error: "Failed to fetch blog posts" }, { status: 500 });

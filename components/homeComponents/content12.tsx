@@ -1,4 +1,13 @@
+// components/homeComponents/content12.tsx
 import React from 'react';
+import Link from 'next/link';
+
+// Buttons now have real destinations instead of being decorative no-ops
+const ACTIONS = [
+  { label: 'Contact Us',            Icon: MailIcon,     href: '/jbbc/contact/inquiry' },
+  { label: 'Download Materials',    Icon: DownloadIcon, href: '/download' },
+  { label: 'Seminar & Facility Tour', Icon: EventIcon,  href: '/seminar' },
+] as const;
 
 const Content12: React.FC = () => {
   return (
@@ -34,20 +43,18 @@ const Content12: React.FC = () => {
           </svg>
         </div>
 
-        {/* Button group */}
+        {/* Button group — each button now navigates somewhere */}
         <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center gap-4">
-          {[
-            { label: 'Contact Us', icon: MailIcon },
-            { label: 'Download Materials', icon: DownloadIcon },
-            { label: 'Seminar & Facility Tour', icon: EventIcon },
-          ].map((item, index) => (
-            <button
-              key={index}
-              className="bg-white text-blue-500 font-medium px-6 py-3 rounded-full flex items-center justify-center space-x-2 shadow-md hover:shadow-lg transition-shadow min-w-[200px]"
-            >
-              <item.icon className="w-5 h-5" />
-              <span>{item.label}</span>
-            </button>
+          {ACTIONS.map(({ label, Icon, href }) => (
+            <Link key={label} href={href}>
+              <button
+                type="button"
+                className="bg-white text-blue-500 font-medium px-6 py-3 rounded-full flex items-center justify-center space-x-2 shadow-md hover:shadow-lg transition-shadow min-w-[200px]"
+              >
+                <Icon className="w-5 h-5" />
+                <span>{label}</span>
+              </button>
+            </Link>
           ))}
         </div>
       </div>
@@ -55,38 +62,44 @@ const Content12: React.FC = () => {
   );
 };
 
-// 🎨 SVG Icons（内联组件，避免依赖图标库）
-const MailIcon = ({ className }:any) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-    ></path>
-  </svg>
-);
+// SVG icons — defined outside component to avoid recreation per render
+function MailIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+      />
+    </svg>
+  );
+}
 
-const DownloadIcon = ({ className }:any) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-    ></path>
-  </svg>
-);
+function DownloadIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+      />
+    </svg>
+  );
+}
 
-const EventIcon = ({ className }:any) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-    ></path>
-  </svg>
-);
+function EventIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+      />
+    </svg>
+  );
+}
 
 export default Content12;

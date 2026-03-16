@@ -1,46 +1,50 @@
-// Content11.tsx
+// components/homeComponents/content11.tsx
 "use client";
 
 import { Typography, Row, Col, Button, Image } from "antd";
 import { RightOutlined } from "@ant-design/icons";
-import React, { useState } from "react";
+import React from "react";
+import Link from "next/link";
 import HeroCarousel from "@/components/hero/HeroCarousel";
 import { getCdnUrl } from "@/config/cdn";
 
-const Content11: React.FC = () => {
-  const { Text, Title } = Typography;
+const { Text, Title } = Typography;
 
-  const [faqItems] = useState([
-    { question: 'How do you solve the labor shortage?', id: 'faq1' },
-    { question: 'Is the contract period fixed?', id: 'faq2' },
-    { question: 'How long does it take to get introduced after requesting?', id: 'faq3' },
-    { question: 'What is the market rate per person?', id: 'faq4' },
-    { question: 'Can foreign staff work without time restrictions?', id: 'faq5' },
-    { question: 'Is there any support or follow-up after employment?', id: 'faq6' },
-  ]);
+// Static data — plain const outside the component, not useState
+// useState causes a wasted render slot and extra closure allocation for data that never changes
+const FAQ_ITEMS = [
+  { question: "How do you solve the labor shortage?",          id: "faq1" },
+  { question: "Is the contract period fixed?",                 id: "faq2" },
+  { question: "How long does it take after requesting?",       id: "faq3" },
+  { question: "What is the market rate per person?",           id: "faq4" },
+  { question: "Can foreign staff work without time limits?",   id: "faq5" },
+  { question: "Is there support after employment?",            id: "faq6" },
+];
 
+export default function Content11() {
   return (
     <div className="w-full">
-      {/* Company Section — no roundness */}
+      {/* Company Section */}
       <div
         className="py-10 md:py-16 px-4 md:px-6 w-11/12 md:w-4/5 mx-auto text-center mb-10 md:mb-16"
-        style={{ backgroundColor: 'rgba(0,97,154,0.2)' }}
+        style={{ backgroundColor: "rgba(0,97,154,0.2)" }}
       >
-        <Button
-          type="primary"
-          size="large"
-          className="border-none mb-4 md:mb-6 !px-6 !py-2 md:!px-8 md:!py-3 !text-base md:!text-lg"
-          style={{ background: '#00619A', borderRadius: 0 }}
-          onClick={() => window.location.href = '/jbbc/Info'}
-        >
-          About Us
-        </Button>
-        <Title level={2} className="!text-2xl md:!text-3xl !m-0 mb-4 md:mb-6">
-          Company Information
-        </Title>
+        {/* Link instead of window.location.href — no full page reload */}
+        <Link href="/jbbc/Info">
+          <Button
+            type="primary"
+            size="large"
+            className="border-none mb-4 md:mb-6 !px-6 !py-2 md:!px-8 md:!py-3 !text-base md:!text-lg"
+            style={{ background: "#00619A", borderRadius: 0 }}
+          >
+            About Us
+          </Button>
+        </Link>
+        <Title level={2} className="!text-2xl md:!text-3xl !m-0 mb-4 md:mb-6">Company Information</Title>
         <Text className="block text-base md:text-lg text-gray-700 max-w-3xl mx-auto text-left">
           Japan Bangladesh Bridge Co., Ltd. is a comprehensive human resources service company specializing in manufacturing.
-          Japan is a "manufacturing" nation, and manufacturing has supported Japan's economy. Our mission is to connect the "manufacturing" sites and all the people who work there.
+          Japan is a "manufacturing" nation, and manufacturing has supported Japan's economy. Our mission is to connect
+          the "manufacturing" sites and all the people who work there.
         </Text>
       </div>
 
@@ -60,16 +64,19 @@ const Content11: React.FC = () => {
             Compliance Initiatives
           </Title>
           <Text className="block text-base md:text-lg text-gray-700 mb-6 md:mb-8 text-left">
-            Japan Bangladesh Bridge complies with all labor-related regulations and laws related to our business, and strives to conduct corporate activities that conform to normal business practices and social ethics.
+            Japan Bangladesh Bridge complies with all labor-related regulations and laws related to our business,
+            and strives to conduct corporate activities that conform to normal business practices and social ethics.
           </Text>
-          <Button
-            size="large"
-            className="self-start border-none !px-6 !py-2 md:!px-8 md:!py-3 !text-base md:!text-lg text-white"
-            style={{ background: '#00619A', borderRadius: 0 }}
-            onClick={() => window.location.href = '/jbbc/Info'}
-          >
-            Details Here →
-          </Button>
+          {/* Link instead of window.location.href */}
+          <Link href="/jbbc/Info" className="self-start">
+            <Button
+              size="large"
+              className="border-none !px-6 !py-2 md:!px-8 md:!py-3 !text-base md:!text-lg text-white"
+              style={{ background: "#00619A", borderRadius: 0 }}
+            >
+              Details Here →
+            </Button>
+          </Link>
         </Col>
       </Row>
 
@@ -80,11 +87,11 @@ const Content11: React.FC = () => {
       </div>
 
       {/* Problems / FAQ Section */}
-      <div className="py-10 md:py-16 px-4 md:px-10" style={{ backgroundColor: 'rgba(0,97,154,0.2)' }}>
+      <div className="py-10 md:py-16 px-4 md:px-10" style={{ backgroundColor: "rgba(0,97,154,0.2)" }}>
         <div className="text-center text-gray-500 text-sm md:text-base mb-6 md:mb-8">Problems</div>
         <div className="bg-white shadow-lg overflow-hidden w-11/12 md:w-4/5 mx-auto p-6 md:p-10" style={{ borderRadius: 0 }}>
           <Button
-            style={{ background: '#00619A', border: 'none', color: 'white', borderRadius: 0, marginTop: '20px' }}
+            style={{ background: "#00619A", border: "none", color: "white", borderRadius: 0, marginTop: "20px" }}
             className="!px-6 !py-3 md:!px-8 md:!py-4 !text-lg md:!text-xl font-bold mb-6 md:mb-0"
           >
             Frequently Asked Questions
@@ -98,23 +105,25 @@ const Content11: React.FC = () => {
                 From labor shortages to business efficiency, let's solve the challenges you're facing together.
                 First, please take a look at the "Frequently Asked Questions". We'll introduce you to the solutions.
               </Text>
-              <Button
-                type="primary"
-                size="large"
-                className="border-none !px-6 !py-2 md:!px-8 md:!py-3 !text-base md:!text-lg flex items-center"
-                style={{ background: '#00619A', borderRadius: 0 }}
-                onClick={() => window.location.href = '/jbbc/faq'}
-              >
-                View Answers to Questions <RightOutlined className="ml-2" />
-              </Button>
+              {/* Link instead of window.location.href */}
+              <Link href="/jbbc/faq">
+                <Button
+                  type="primary"
+                  size="large"
+                  className="border-none !px-6 !py-2 md:!px-8 md:!py-3 !text-base md:!text-lg flex items-center"
+                  style={{ background: "#00619A", borderRadius: 0 }}
+                >
+                  View Answers to Questions <RightOutlined className="ml-2" />
+                </Button>
+              </Link>
             </Col>
             <Col xs={24} md={12} className="p-4 md:p-10">
               <ul className="list-none p-0 m-0">
-                {faqItems.map((item, index) => (
+                {FAQ_ITEMS.map((item) => (
                   <li
-                    key={index}
+                    key={item.id}
                     className="flex items-center mb-4 p-3 border-2"
-                    style={{ borderColor: 'rgba(0,97,154,0.4)', borderRadius: 0 }}
+                    style={{ borderColor: "rgba(0,97,154,0.4)", borderRadius: 0 }}
                   >
                     <div
                       className="bg-[#00619A] text-white w-6 h-6 md:w-7 md:h-7 flex items-center justify-center text-sm md:text-base font-bold mr-3 flex-shrink-0"
@@ -132,6 +141,4 @@ const Content11: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default Content11;
+}

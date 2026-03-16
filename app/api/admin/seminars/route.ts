@@ -1,9 +1,17 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from '@/lib/prisma';
 import { sendSeminarNotificationEmail } from '@/lib/email';
 
 export async function POST(request: Request) {
   try {
+    // FIX: Added auth check - was missing (security vulnerability)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const {
       title,
@@ -20,6 +28,23 @@ export async function POST(request: Request) {
       speakerTitle,
       speakerOrg,
     } = body;
+
+    // FIX: Added required field validation
+    if (!title || !location || !startsAt || !endsAt || !slug) {
+      return NextResponse.json(
+        { error: "Title, location, startsAt, endsAt, and slug are required" },
+        { status: 400 }
+      );
+    }
+
+    // FIX: Check for duplicate slug
+    const existing = await prisma.seminar.findUnique({ where: { slug } });
+    if (existing) {
+      return NextResponse.json(
+        { error: "Seminar with this slug already exists" },
+        { status: 409 }
+      );
+    }
 
     const seminar = await prisma.seminar.create({
       data: {
@@ -39,11 +64,10 @@ export async function POST(request: Request) {
       },
     });
 
-    // Send emails in background using cursor-based pagination to reduce RAM usage
-    // Don't wait for completion - process asynchronously with retry logic
-    const sendEmailsInBackground = async () => {
+    // Fire-and-forget: cursor-batched email send to prevent RAM spikes
+    (async () => {
       const maxRetries = 3;
-      const batchSize = 500; // Process 500 subscribers at a time
+      const batchSize = 500;
       let cursor: string | undefined = undefined;
       let hasMore = true;
       let totalSent = 0;
@@ -52,24 +76,18 @@ export async function POST(request: Request) {
       try {
         while (hasMore) {
           const subscribers: { id: string; email: string }[] = await prisma.subscription.findMany({
-            where: {
-              unsubscribedAt: null,
-            },
+            where: { unsubscribedAt: null },
             select: { id: true, email: true },
             take: batchSize,
             ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
             orderBy: { id: 'asc' },
           });
 
-          if (subscribers.length === 0) {
-            hasMore = false;
-            break;
-          }
+          if (subscribers.length === 0) break;
 
           const emailList = subscribers.map(s => s.email);
-
-          // Retry logic for email sending
           let emailSuccess = false;
+
           for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
               const result = await sendSeminarNotificationEmail(emailList, {
@@ -83,18 +101,17 @@ export async function POST(request: Request) {
               if (result.success) {
                 emailSuccess = true;
                 totalSent += emailList.length;
-
-                // Log notifications for this batch
-                await prisma.notification.createMany({
-                  data: emailList.map(email => ({
-                    type: 'seminar',
-                    refId: seminar.id,
-                    email,
-                  })),
-                }).catch(err => {
-                  console.error('Failed to log notifications:', err);
-                  // Don't fail the batch if logging fails
-                });
+                try {
+                  await prisma.notification.createMany({
+                    data: emailList.map(email => ({
+                      type: 'seminar',
+                      refId: seminar.id,
+                      email,
+                    })),
+                  });
+                } catch (logError) {
+                  console.error('Failed to log notifications:', logError);
+                }
                 break;
               } else {
                 console.error(`Email sending failed: ${result.error}`);
@@ -104,50 +121,32 @@ export async function POST(request: Request) {
             }
 
             if (attempt < maxRetries) {
-              const delay = 1000 * Math.pow(2, attempt - 1); // Exponential backoff
-              console.log(`Retrying in ${delay}ms...`);
+              const delay = 1000 * Math.pow(2, attempt - 1);
               await new Promise(resolve => setTimeout(resolve, delay));
             }
           }
 
           if (!emailSuccess) {
             failedBatches++;
-            console.error(`Failed to send email batch after ${maxRetries} attempts. Continuing with next batch.`);
+            console.error(`Failed to send email batch after ${maxRetries} attempts. Continuing.`);
           }
 
-          // Update cursor for next batch
-          if (subscribers.length < batchSize) {
-            hasMore = false;
-          } else {
-            cursor = subscribers[subscribers.length - 1].id;
-          }
-
-          // Clear batch from memory
-          subscribers.length = 0;
-          emailList.length = 0;
+          hasMore = subscribers.length === batchSize;
+          cursor = hasMore ? subscribers[subscribers.length - 1].id : undefined;
         }
 
-        const logMessage = `Seminar email completed. Sent: ${totalSent}, Failed batches: ${failedBatches}`;
-        console.log(logMessage);
-        
-        // Log final status if there were failures
+        console.log(`Seminar email completed. Sent: ${totalSent}, Failed batches: ${failedBatches}`);
         if (failedBatches > 0) {
-          console.warn(`Warning: ${failedBatches} batches failed to send. Consider manual retry.`);
+          console.warn(`Warning: ${failedBatches} batches failed. Consider manual retry.`);
         }
       } catch (err) {
-        console.error('Background email sending failed with critical error:', err);
+        console.error('Background seminar email failed with critical error:', err);
       }
-    };
-
-    // Start background process (fire and forget)
-    sendEmailsInBackground().catch(err => console.error('Background email error:', err));
+    })();
 
     return NextResponse.json({ seminar }, { status: 201 });
   } catch (error) {
     console.error('Error creating seminar:', error);
-    return NextResponse.json(
-      { error: 'Failed to create seminar' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create seminar' }, { status: 500 });
   }
 }

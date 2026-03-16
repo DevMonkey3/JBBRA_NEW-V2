@@ -26,16 +26,25 @@ const fetcher = async (url: string): Promise<NoticesApiResponse> => {
   return res.json();
 };
 
+// Static config outside component — pure data, no reason to recreate per render
+const TYPE_CONFIG = {
+  newsletter:   { color: '#1890ff', label: 'Newsletter',   icon: <MailOutlined /> },
+  seminar:      { color: '#52c41a', label: 'Seminar',      icon: <CalendarOutlined /> },
+  announcement: { color: '#fa8c16', label: 'Announcement', icon: <NotificationOutlined /> },
+} as const;
+
+const NOTICES_PER_PAGE = 12;
+
 export default function NoticesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  const NOTICES_PER_PAGE = 12;
-
   // Use SWR for data fetching with automatic caching and revalidation
   const { data, isLoading, error } = useSWR<NoticesApiResponse>(
-    `/api/notices?page=${currentPage}&limit=${NOTICES_PER_PAGE}`,
+    // Pass type filter to the API so server-side filtering reduces payload size.
+    // Search stays client-side since it filters the already-fetched page.
+    `/api/notices?page=${currentPage}&limit=${NOTICES_PER_PAGE}${typeFilter !== 'all' ? `&type=${typeFilter}` : ''}`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -47,47 +56,30 @@ export default function NoticesPage() {
 
   const notices = data?.notices || [];
   const totalNotices = data?.total || 0;
-  const hasMore = data?.hasMore || false;
+  const totalPages = useMemo(() => Math.ceil(totalNotices / NOTICES_PER_PAGE), [totalNotices]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const totalPages = useMemo(() => Math.ceil(totalNotices / NOTICES_PER_PAGE), [totalNotices, NOTICES_PER_PAGE]);
-
-  // Filter notices based on search and type - memoized to prevent unnecessary recalculations
-  const filteredNotices = useMemo(() => {
-    let filtered = notices;
-
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(n => n.type === typeFilter);
-    }
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(n =>
-        n.title.toLowerCase().includes(query) ||
-        n.excerpt?.toLowerCase().includes(query)
-      );
-    }
-
-    return filtered;
-  }, [notices, searchQuery, typeFilter]);
-
-  // Memoize type config to prevent unnecessary re-creation of icons
-  const getTypeConfig = useCallback((type: string) => {
-    switch (type) {
-      case 'newsletter':
-        return { color: '#1890ff', label: 'Newsletter', icon: <MailOutlined /> };
-      case 'seminar':
-        return { color: '#52c41a', label: 'Seminar', icon: <CalendarOutlined /> };
-      case 'announcement':
-        return { color: '#fa8c16', label: 'Announcement', icon: <NotificationOutlined /> };
-      default:
-        return { color: '#8c8c8c', label: 'Unknown', icon: <NotificationOutlined /> };
-    }
+  // Reset to page 1 when filter changes
+  const handleTypeFilter = useCallback((val: string) => {
+    setTypeFilter(val);
+    setCurrentPage(1);
   }, []);
+
+  // Client-side search only filters the current page.
+  // NOTE: This is a known limitation — it only searches visible items, not all notices.
+  // For full-text search across all pages, move search to the API route.
+  const filteredNotices = useMemo(() => {
+    if (!searchQuery) return notices;
+    const q = searchQuery.toLowerCase();
+    return notices.filter(n =>
+      n.title.toLowerCase().includes(q) ||
+      n.excerpt?.toLowerCase().includes(q)
+    );
+  }, [notices, searchQuery]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 md:px-8 lg:px-16">
@@ -145,7 +137,8 @@ export default function NoticesPage() {
           <>
             <Row gutter={[16, 16]}>
               {filteredNotices.map((notice) => {
-                const typeConfig = getTypeConfig(notice.type);
+                const cfg = TYPE_CONFIG[notice.type as keyof typeof TYPE_CONFIG]
+                  ?? { color: '#8c8c8c', label: 'Unknown', icon: <NotificationOutlined /> };
                 const date = new Date(notice.publishedAt);
 
                 return (
@@ -154,10 +147,10 @@ export default function NoticesPage() {
                       <Card
                         hoverable
                         className="h-full"
-                        bodyStyle={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                        styles={{ body: { height: '100%', display: 'flex', flexDirection: 'column' } }}
                       >
                         <div className="mb-3 flex items-center justify-between">
-                          <Tag icon={typeConfig.icon} color={typeConfig.color}>{typeConfig.label}</Tag>
+                          <Tag icon={cfg.icon} color={cfg.color}>{cfg.label}</Tag>
                           <Text type="secondary" className="text-xs flex items-center gap-1">
                             <ClockCircleOutlined />
                             {date.toLocaleDateString('en-US')}
@@ -171,7 +164,7 @@ export default function NoticesPage() {
                         )}
 
                         <div className="mt-auto pt-4">
-                          <Text className="text-blue-600 hover:underline">Read more -&gt;</Text>
+                          <Text className="text-blue-600 hover:underline">Read more →</Text>
                         </div>
                       </Card>
                     </Link>

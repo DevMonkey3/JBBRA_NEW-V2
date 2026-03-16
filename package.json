@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
-    "start": "next start",
+    "start": "node --max-old-space-size=1024 --max-semi-space-size=64 --optimize-for-size server.js",
     "lint": "next lint"
   },
   "dependencies": {
@@ -62,6 +62,7 @@
     "framer-motion": "11.18.2",
     "googleapis": "^161.0.0",
     "intl-messageformat": "10.7.16",
+    "isomorphic-dompurify": "^3.3.0",
     "mongodb": "^6.20.0",
     "next": "^15.5.3",
     "next-auth": "^4.24.11",
@@ -78,6 +79,7 @@
     "@react-types/shared": "3.30.0",
     "@tailwindcss/postcss": "4.1.11",
     "@types/bcryptjs": "^2.4.6",
+    "@types/dompurify": "^3.0.5",
     "@types/next-auth": "^3.13.0",
     "@types/node": "20.5.7",
     "@types/react": "^18.3.3",

@@ -75,9 +75,9 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      // If token doesn't have user data, invalidate the session (handles stale/decrypted cookies)
+      // If token doesn't have user data, return session without user (handles stale/decrypted cookies)
       if (!token?.user) {
-        return null;
+        return session;
       }
       session.user = token.user as any;
       return session;
@@ -90,9 +90,6 @@ export const authOptions: NextAuthOptions = {
     },
     async signOut({ token }) {
       console.log('[AUTH] User signed out');
-    },
-    async error({ message }) {
-      console.log('[AUTH] Auth error:', message);
     },
   },
   // FIX: Handle JWT decryption failures gracefully by returning null instead of throwing

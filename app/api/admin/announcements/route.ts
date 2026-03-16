@@ -54,15 +54,15 @@ export async function GET(request: Request): Promise<NextResponse<GetAnnouncemen
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
     const skip = (page - 1) * limit;
 
-    // Get total count for pagination metadata
-    const total = await prisma.announcement.count();
-
-    // Fetch paginated announcements
-    const announcements = await prisma.announcement.findMany({
-      orderBy: { publishedAt: 'desc' },
-      take: limit,
-      skip,
-    });
+    // FIX: Run both queries in parallel to reduce DB round-trips
+    const [announcements, total] = await Promise.all([
+      prisma.announcement.findMany({
+        orderBy: { publishedAt: 'desc' },
+        take: limit,
+        skip,
+      }),
+      prisma.announcement.count(),
+    ]);
 
     const hasMore = skip + announcements.length < total;
 

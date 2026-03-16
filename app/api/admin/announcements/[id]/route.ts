@@ -39,7 +39,7 @@ export async function GET(
 }
 
 /**
- * PUT - Update announcement
+ * PUT - Update announcement (including slug)
  */
 export async function PUT(
   req: Request,
@@ -53,7 +53,7 @@ export async function PUT(
 
     const { id } = await params;
     const body: CreateAnnouncementRequest = await req.json();
-    const { title, body: content, excerpt } = body;
+    const { title, body: content, excerpt, slug } = body;
 
     if (!title || !content) {
       return NextResponse.json(
@@ -62,12 +62,30 @@ export async function PUT(
       );
     }
 
+    const existing = await prisma.announcement.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: "Announcement not found" }, { status: 404 });
+    }
+
+    // FIX: If slug is changing, make sure it's not taken
+    if (slug && slug !== existing.slug) {
+      const conflict = await prisma.announcement.findUnique({ where: { slug } });
+      if (conflict) {
+        return NextResponse.json(
+          { error: "Announcement with this slug already exists" },
+          { status: 409 }
+        );
+      }
+    }
+
     const announcement = await prisma.announcement.update({
       where: { id },
       data: {
         title,
         body: content,
         excerpt,
+        // FIX: Only update slug if provided and different
+        ...(slug && slug !== existing.slug ? { slug } : {}),
       },
     });
 

@@ -4,7 +4,8 @@ import { prisma } from "@/lib/prisma";
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '10');
+    // FIX: Cap limit at 50 to prevent full-table RAM dump via ?limit=999999
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)));
 
     const announcements = await prisma.announcement.findMany({
       orderBy: {

@@ -1,16 +1,17 @@
 // app/api/contact/route.ts
+// DELETE THIS FILE if you have no plans to use it.
+// It currently does nothing useful and exposes a write endpoint on your server.
+//
+// When you're ready to wire it up, implement one of:
+//   A) Save to DB:  prisma.inquiry.create(...)
+//   B) Send email:  resend.emails.send(...)
+//   C) Write to Google Sheets (see /api/form-submit for the pattern)
+
 import { NextResponse } from "next/server";
 
-export async function GET(request: Request) {
-  return NextResponse.json({ ok: true, message: "contact GET ok" });
-}
-
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    // handle body as needed...
-    return NextResponse.json({ ok: true, data: body });
-  } catch (err) {
-    return NextResponse.json({ ok: false, error: "invalid json" }, { status: 400 });
-  }
+export async function POST() {
+  return NextResponse.json(
+    { error: "Not implemented" },
+    { status: 501 }
+  );
 }

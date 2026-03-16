@@ -1,12 +1,6 @@
-/**
- * SEO OPTIMIZATION: Added metadata export
- * WHY: This tells search engines what this page is about
- * CHANGE: Added metadata object for SEO (no other changes to functionality)
- */
 'use client'
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import { Button } from "@heroui/button";
-import { useState } from "react";
 import { Image } from '@heroui/image';
 import Breadcrumbs from "@/components/breadcrumb/page";
 import BgFont from "@/components/bgFont/BgFont";
@@ -15,8 +9,10 @@ import { Spin } from "antd";
 import { getCdnUrl } from "@/config/cdn";
 import useSWR from 'swr';
 
-// SEO: Force dynamic rendering to prevent build errors with client components
-export const dynamic = 'force-dynamic';
+// FIX: Removed export const dynamic = 'force-dynamic'
+// This was forcing SSR on every request for a 'use client' component,
+// which gains nothing and prevents any caching. Client components fetch
+// data in the browser via SWR — the server never needs to rerender this.
 
 interface BlogPost {
   id: string;
@@ -74,13 +70,13 @@ const PostCard = React.memo(function PostCard({ post }: { post: BlogPost }) {
       <article className="rounded-lg border border-gray-200 shadow-sm overflow-hidden bg-white hover:shadow-lg transition-shadow cursor-pointer">
         <div className="relative aspect-video">
           {/* SEO: Added descriptive alt text for images - helps with image search and accessibility */}
-          <Image 
+          <Image
             src={post.coverImage || getCdnUrl('/home/blogPosts.avif')}
             alt={`${post.title} - Blog post cover image`}
             className="w-full h-full object-cover"
             width={400}
             height={225}
-            loading="lazy" 
+            loading="lazy"
           />
           <span className="absolute left-3 top-3 inline-block bg-sky-500 text-gray-900 text-xs px-2 py-1 rounded font-semibold">
             Lifestyle
@@ -111,9 +107,13 @@ const PostCard = React.memo(function PostCard({ post }: { post: BlogPost }) {
   );
 });
 
+const POSTS_PER_PAGE = 12;
+
 export default function BlogPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [breadcrumbData] = useState([
+
+  // FIX: Static value — no need for useState, it never changes
+  const breadcrumbData = [
     {
       key: "top",
       title: <span style={{ color: "#019cd4" }}>top</span>,
@@ -122,9 +122,7 @@ export default function BlogPage() {
       key: "blog",
       title: "Blog",
     },
-  ]);
-
-  const POSTS_PER_PAGE = 12;
+  ];
 
   // Use SWR for data fetching with automatic caching and revalidation
   const { data, isLoading, error } = useSWR<BlogApiResponse>(

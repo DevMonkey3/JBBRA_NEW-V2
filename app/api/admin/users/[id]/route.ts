@@ -30,13 +30,14 @@ export async function PUT(
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
-    // Check if user exists
+    // Check target user exists
     const user = await prisma.adminUser.findUnique({ where: { id: userId } });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const data: any = { name };
+    // FIX: Use typed object instead of `any`
+    const data: { name: string; passwordHash?: string } = { name };
 
     // Update password if provided
     if (password && password.trim().length >= 8) {
@@ -74,18 +75,15 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if user exists
+    // Check target user exists
     const user = await prisma.adminUser.findUnique({ where: { id: userId } });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Prevent deleting yourself
-    const currentUser = await prisma.adminUser.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (currentUser?.id === userId) {
+    // FIX: Prevent self-deletion by comparing directly against fetched user's email
+    // instead of making a second DB query for the current user
+    if (user.email === session.user.email) {
       return NextResponse.json({ error: "Cannot delete your own account" }, { status: 400 });
     }
 

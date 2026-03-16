@@ -20,6 +20,11 @@ export interface GetNoticesResponse {
 /**
  * GET - Get all public notices (newsletters, seminars, announcements) with pagination
  * Public endpoint - no authentication required
+ *
+ * NOTE: Cross-table sorted pagination is done by fetching a window from each table,
+ * merging in JS, then slicing. This is acceptable for small-to-medium content volumes
+ * (hundreds of notices). If you ever have thousands, move to a unified Notice table.
+ *
  * Query params:
  *   - page: Page number (default: 1)
  *   - limit: Notices per page (default: 12, max: 50)
@@ -31,63 +36,41 @@ export async function GET(request: Request): Promise<NextResponse<GetNoticesResp
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '12', 10)));
     const skip = (page - 1) * limit;
 
-    // Fetch all types of notices with pagination
-    const [newsletters, seminars, announcements] = await Promise.all([
+    // FIX: Fetch the correct window size (skip + limit) instead of limit * 2
+    // This ensures we have enough rows even if all results come from one table
+    const fetchPerTable = skip + limit;
+
+    // FIX: Run all 6 queries in parallel (3 data + 3 counts) instead of sequentially
+    const [newsletters, seminars, announcements, nlCount, semCount, annCount] = await Promise.all([
       prisma.newsletter.findMany({
-        select: {
-          id: true,
-          title: true,
-          excerpt: true,
-          slug: true,
-          publishedAt: true,
-        },
+        select: { id: true, title: true, excerpt: true, slug: true, publishedAt: true },
         orderBy: { publishedAt: 'desc' },
-        take: limit * 2, // Fetch more to ensure we have enough after merging
+        take: fetchPerTable,
       }),
       prisma.seminar.findMany({
-        select: {
-          id: true,
-          title: true,
-          excerpt: true,
-          slug: true,
-          publishedAt: true,
-        },
+        select: { id: true, title: true, excerpt: true, slug: true, publishedAt: true },
         orderBy: { publishedAt: 'desc' },
-        take: limit * 2,
+        take: fetchPerTable,
       }),
       prisma.announcement.findMany({
-        select: {
-          id: true,
-          title: true,
-          excerpt: true,
-          slug: true,
-          publishedAt: true,
-        },
+        select: { id: true, title: true, excerpt: true, slug: true, publishedAt: true },
         orderBy: { publishedAt: 'desc' },
-        take: limit * 2,
+        take: fetchPerTable,
       }),
+      prisma.newsletter.count(),
+      prisma.seminar.count(),
+      prisma.announcement.count(),
     ]);
 
-    // Combine and add type
+    const total = nlCount + semCount + annCount;
+
+    // Combine, tag with type, sort descending by date
     const allNotices: Notice[] = [
       ...newsletters.map(n => ({ ...n, type: 'newsletter' as const })),
       ...seminars.map(s => ({ ...s, type: 'seminar' as const })),
       ...announcements.map(a => ({ ...a, type: 'announcement' as const })),
-    ];
+    ].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 
-    // Sort by published date descending
-    allNotices.sort((a, b) => {
-      const dateA = new Date(a.publishedAt).getTime();
-      const dateB = new Date(b.publishedAt).getTime();
-      return dateB - dateA;
-    });
-
-    // Get total count for pagination metadata
-    const total = await prisma.newsletter.count() + 
-                  await prisma.seminar.count() + 
-                  await prisma.announcement.count();
-
-    // Apply pagination after sorting
     const notices = allNotices.slice(skip, skip + limit);
     const hasMore = skip + notices.length < total;
 

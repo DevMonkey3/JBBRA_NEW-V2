@@ -1,0 +1,13 @@
+/* components/homeComponents/content7.module.css */
+.wrap * { font-family: var(--font-serif-jp), serif !important; }
+.reasonRow { display: flex; border-bottom: 1px solid rgba(0,97,154,0.25); }
+.reasonRow:first-child { border-top: 1px solid rgba(0,97,154,0.25); }
+.labelCol {
+  width: 110px; min-width: 110px; background: #00619A; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  padding: 14px 8px; font-size: 0.82rem; font-weight: 700;
+  letter-spacing: 0.04em; flex-shrink: 0;
+}
+.contentCol { padding: 14px 20px; background: #fff; flex: 1; }
+.titleText { font-size: 1rem; font-weight: 700; color: #1a1a1a; display: block; margin-bottom: 4px; }
+.descText { font-size: 0.85rem; color: #444; line-height: 1.75; display: block; }

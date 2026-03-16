@@ -9,6 +9,7 @@ import { Button } from 'antd';
 import Link from 'next/link';
 import Breadcrumb from '@/components/breadcrumb';
 import LikeButton from '@/components/LikeButton';
+import DOMPurify from 'isomorphic-dompurify';
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -39,9 +40,19 @@ export async function generateStaticParams() {
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
 
-  // Fetch blog post from database
+  // FIX: Only select fields we actually use — reduces memory and DB load
   const post = await prisma.blogPost.findUnique({
     where: { slug },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      content: true,
+      coverImage: true,
+      excerpt: true,
+      publishedAt: true,
+      likeCount: true,
+    },
   });
 
   if (!post) {
@@ -54,6 +65,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     month: 'long',
     day: 'numeric',
   });
+
+  // FIX: Sanitize HTML content to prevent stored XSS attacks
+  // Without this, any admin who writes a blog post can inject <script> tags
+  // that execute on every reader's browser
+  const safeContent = DOMPurify.sanitize(post.content);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-gray-50">
@@ -182,7 +198,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 prose-code:bg-gray-100 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm
                 prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:p-6 prose-pre:rounded-xl prose-pre:shadow-lg"
             >
-              <div className="text-gray-900 [&_*]:text-gray-900 [&_*.text-white]:text-gray-900 [&_*.text-gray-100]:text-gray-900 [&_*.text-gray-200]:text-gray-900 [&_*.text-gray-300]:text-gray-900 [&_*.text-gray-400]:text-gray-900 [&_*.text-gray-500]:text-gray-900 [&_*.text-gray-600]:text-gray-900 [&_*.text-gray-700]:text-gray-900 [&_*.text-gray-800]:text-gray-900 [&_*.text-gray-900]:text-gray-900" dangerouslySetInnerHTML={{ __html: post.content }} />
+              {/* safeContent has been sanitized — XSS-safe */}
+              <div className="text-gray-900 [&_*]:text-gray-900 [&_*.text-white]:text-gray-900 [&_*.text-gray-100]:text-gray-900 [&_*.text-gray-200]:text-gray-900 [&_*.text-gray-300]:text-gray-900 [&_*.text-gray-400]:text-gray-900 [&_*.text-gray-500]:text-gray-900 [&_*.text-gray-600]:text-gray-900 [&_*.text-gray-700]:text-gray-900 [&_*.text-gray-800]:text-gray-900 [&_*.text-gray-900]:text-gray-900" dangerouslySetInnerHTML={{ __html: safeContent }} />
             </div>
           </div>
         </article>
