@@ -71,10 +71,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-<<<<<<< HEAD
       // If token doesn't have user data, return session without user (handles stale/decrypted cookies)
-=======
->>>>>>> 7823505994b7553b8c91d5f3fece3ce5a3ed138f
       if (!token?.user) {
         return session;
       }
@@ -89,10 +86,7 @@ export const authOptions: NextAuthOptions = {
     async signOut({ token }) {
       console.log('[AUTH] User signed out');
     },
-<<<<<<< HEAD
-=======
     // FIX: removed 'error' event — not a valid NextAuth EventCallback type
->>>>>>> 7823505994b7553b8c91d5f3fece3ce5a3ed138f
   },
   jwt: {
     maxAge: 30 * 24 * 60 * 60,
