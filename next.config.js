@@ -13,7 +13,7 @@ const nextConfig = {
 
   // Image optimization for responsive delivery
   images: {
-    unoptimized: false,
+    unoptimized: true,
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
