@@ -36,48 +36,6 @@ const nextConfig = {
     } : false,
   },
 
-  // Webpack configuration for bundle optimization
-  webpack: (config, { isServer }) => {
-    // Ant Design tree-shaking optimization
-    // Ensures only used components are included in the bundle
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'antd/es': 'antd/es',
-    };
-    
-    // Minify bundle in production
-    if (!isServer) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            // Separate Ant Design into its own chunk for better caching
-            antd: {
-              name: 'chunk-antd',
-              test: /[\\/]node_modules[\\/]antd/,
-              priority: 10,
-            },
-            // Separate HeroUI into its own chunk
-            heroui: {
-              name: 'chunk-heroui',
-              test: /[\\/]node_modules[\\/]@heroui/,
-              priority: 10,
-            },
-            // Separate React and ReactDOM
-            react: {
-              name: 'chunk-react',
-              test: /[\\/]node_modules[\\/](react|react-dom)/,
-              priority: 20,
-            },
-          },
-        },
-      };
-    }
-    
-    return config;
-  },
-
   // Output optimization
   // CRITICAL for 1GB RAM servers: Creates minimal deployment package (~100MB vs ~500MB)
   // Reduces memory usage during runtime by excluding dev dependencies
