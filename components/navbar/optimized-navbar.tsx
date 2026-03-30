@@ -12,9 +12,9 @@ import Image from "next/image";
 const NAV_ITEMS = [
   { label: "Home",         href: "/"                   },
   { label: "Why Choose Us", href: "/Why"               },
-  { label: "Services",     href: "/jbbc/services"      },
-  { label: "Case Studies", href: "/jbbc/cases"         },
-  { label: "Company",      href: "/jbbc/Info"          },
+  { label: "Services",     href: "/jbbra/services"      },
+  { label: "Case Studies", href: "/jbbra/cases"         },
+  { label: "Company",      href: "/jbbra/Info"          },
   { label: "Seminars",     href: "/seminar"            },
   { label: "Blog",         href: "/blog"               },
 ] as const;
