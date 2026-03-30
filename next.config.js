@@ -39,7 +39,7 @@ const nextConfig = {
   // Output optimization
   // CRITICAL for 1GB RAM servers: Creates minimal deployment package (~100MB vs ~500MB)
   // Reduces memory usage during runtime by excluding dev dependencies
-  output: 'standalone',
+  //output: 'standalone',
 
   // TypeScript and ESLint during build
   typescript: {
