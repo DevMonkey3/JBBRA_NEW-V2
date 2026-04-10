@@ -29,24 +29,24 @@ const SERVICE_LINKS = [
 ] as const;
 
 const COMPANY_LINKS = [
-  ["Company Profile", "/jbbc/Info"],
-  ["Case Studies", "/jbbc/cases"],
-  ["About Jbbra", "/jbbc/about"],
-  ["Careers", "/jbbc/Info"],
+  ["Company Profile", "/jbbra/Info"],
+  ["Case Studies", "/jbbra/cases"],
+  ["About Jbbra", "/jbbra/about"],
+  ["Careers", "/jbbra/Info"],
 ] as const;
 
 const RESOURCE_LINKS = [
   ["Seminars and Events", "/seminar"],
   ["Downloads", "/download"],
-  ["FAQ", "/jbbc/faq"],
-  ["Contact", "/jbbc/contact/inquiry"],
+  ["FAQ", "/jbbra/faq"],
+  ["Contact", "/jbbra/contact/inquiry"],
   ["Privacy Policy", "/legal/privacy"],
 ] as const;
 
 const BOTTOM_LINKS = [
   ["Privacy Policy", "/legal/privacy"],
   ["Terms of Use", "/legal/terms"],
-  ["Contact", "/jbbc/contact/inquiry"],
+  ["Contact", "/jbbra/contact/inquiry"],
 ] as const;
 
 const Footer: React.FC = () => {
