@@ -101,7 +101,7 @@ export default function Page() {
                     <div
                       key={i}
                       className="svc-image-cell"
-                      onClick={() => router.push(`/jbbc/services/service-introduction/${s.slug}`)}
+                      onClick={() => router.push(`/jbbra/services/service-introduction/${s.slug}`)}
                     >
                       <Image
                         src={s.image}
