@@ -2,7 +2,7 @@ export const metadata = { title: "Company Overview | Jbbra" };
 
 export default function CompanyOverview() {
   return (
-    <main className="mx-auto max-w-5xl px-4 py-12">
+    <main className="mx-auto max-w-5xl px-4 py-12 text-black">
       <h1 className="text-3xl md:text-4xl font-bold mb-8">Company Overview</h1>
 
       <dl className="divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden shadow">
