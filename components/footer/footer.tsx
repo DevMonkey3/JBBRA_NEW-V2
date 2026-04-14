@@ -22,10 +22,10 @@ const allImages = [
 
 // Moved outside component — these are static arrays, no reason to recreate per render
 const SERVICE_LINKS = [
-  ["Skilled Workers", "/jbbc/services"],
-  ["Highly Skilled Talent", "/jbbc/services"],
-  ["Technical Interns", "/jbbc/services"],
-  ["Other Solutions", "/jbbc/services"],
+  ["Skilled Workers", "/jbbra/services"],
+  ["Highly Skilled Talent", "/jbbra/services"],
+  ["Technical Interns", "/jbbra/services"],
+  ["Other Solutions", "/jbbra/services"],
 ] as const;
 
 const COMPANY_LINKS = [
