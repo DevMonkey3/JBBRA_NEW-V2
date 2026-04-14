@@ -123,7 +123,7 @@ export default function WhyPage() {
         .why-newsletter-btn:hover { background: #004f7e; }
       `}</style>
 
-      <main className="why-wrap bg-white">
+      <main className="why-wrap  bg-white">
         <div className="container mx-auto">
           <Breadcrumbs
             breadcrumb={breadcrumbData}

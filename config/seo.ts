@@ -2,28 +2,16 @@
 import { Metadata } from 'next';
 
 export const siteConfig = {
-  name: 'Jbbra',
-  description: 'Jbbra provides international recruitment, staffing, and workforce support services connecting Japan and Bangladesh.',
+  name: 'Japan Bangla Bridge Recruiting Agency (Jbbra)',
+  description: 'JBBRA connects Bangladesh talent with jobs in Japan. Expert recruitment, training, and workforce solutions for companies and job seekers.',
   url: 'https://jbbc.co.jp',
   ogImage: 'https://bbc-images.sgp1.cdn.digitaloceanspaces.com/Jbbra%20realated%20photo/JBBRA%20Logo%20SVG%20(3).svg',
-  keywords: [
-    '外国人材',
-    '特定技能',
-    '高度人材',
-    'バングラデシュ',
-    'IT人材',
-    '人材紹介',
-    '技能実習生',
-    '留学生',
-    'グローバル人材',
-    'DX',
-    'オフショア開発',
-  ],
+   keywords: "Jbbra, recruitment, staffing, skilled workers, international talent, Bangladesh, Japan, workforce support",
 };
 
 export const defaultMetadata: Metadata = {
   title: {
-    default: 'Jbbra | Recruitment and Workforce Solutions',
+    default: 'JBBRA | Japan Bangladesh Recruiting Agency | Skilled Workers & Job Placement Services',
     template: '%s | Jbbra',
   },
   description: siteConfig.description,

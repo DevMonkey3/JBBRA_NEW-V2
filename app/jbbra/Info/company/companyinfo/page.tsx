@@ -9,18 +9,18 @@ export default function CompanyOverview() {
     {
       key: "top",
       title: <span style={{ color: "#019cd4" }}>top</span>,
-      // path: '/jbbc/contact/inquiry',
+      // path: '/jbbra/contact/inquiry',
     },
     {
       key: "Info",
       // title: "Company Information",
-      title: <Link href="/jbbc/Info">Company Information</Link>
-      // path: '/jbbc/contact/inquiry',
+      title: <Link href="/jbbra/Info">Company Information</Link>
+      // path: '/jbbra/contact/inquiry',
     },
     {
       key: "companyinfo",
       title: "Company Overview",
-      // path: '/jbbc/contact/inquiry',
+      // path: '/jbbra/contact/inquiry',
     }
   ]);
   return (

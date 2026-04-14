@@ -1,8 +1,8 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Jbbra",
-  description: "Jbbra provides international recruitment, staffing, and workforce support services connecting Japan and Bangladesh.",
+  name: "Japan Bangla Bridge Recruiting Agency (Jbbra)",
+  description: "JBBRA connects Bangladesh talent with jobs in Japan. Expert recruitment, training, and workforce solutions for companies and job seekers.Jbbra provides international recruitment, staffing, and workforce support services connecting Japan and Bangladesh.",
   keywords: "Jbbra, recruitment, staffing, skilled workers, international talent, Bangladesh, Japan, workforce support",
   author: "Jbbra",
   siteUrl: process.env.NEXTAUTH_URL || "https://jbbc.co.jp",

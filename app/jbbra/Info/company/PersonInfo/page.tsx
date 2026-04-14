@@ -15,18 +15,18 @@ export default function CompanyMessage() {
         {
           key: "top",
           title: <span style={{ color: "#019cd4" }}>top</span>,
-          // path: '/jbbc/contact/inquiry',
+          // path: '/jbbra/contact/inquiry',
         },
         {
           key: "Info",
           // title: "会社情報",
-          title:<Link href="/jbbc/Info">会社情報</Link>
-          // path: '/jbbc/contact/inquiry',
+          title:<Link href="/jbbra/Info">会社情報</Link>
+          // path: '/jbbra/contact/inquiry',
         },
         {
           key: "message",
           title: "代表ご挨拶",
-          // path: '/jbbc/contact/inquiry',
+          // path: '/jbbra/contact/inquiry',
         }
       ]);
   return (
