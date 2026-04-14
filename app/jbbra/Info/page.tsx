@@ -5,8 +5,8 @@ import BgFont from "@/components/bgFont/BgFont";
 import { getCdnUrl } from "@/config/cdn";
 
 const sections = [
-  { title: "Message from the Representative", img: getCdnUrl("/home/Mask-group-4-1.avif"), href: "/jbbc/Info/company/PersonInfo" },
-  { title: "Company Overview",                img: getCdnUrl("/home/homeImg.avif"),         href: "/jbbc/Info/company/companyinfo" },
+  { title: "Message from the Representative", img: getCdnUrl("/home/Mask-group-4-1.avif"), href: "/jbbra/Info/company/PersonInfo" },
+  { title: "Company Overview",                img: getCdnUrl("/home/homeImg.avif"),         href: "/jbbra/Info/company/companyinfo" },
 ];
 
 const breadcrumbData = [
