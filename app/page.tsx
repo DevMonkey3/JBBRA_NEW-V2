@@ -20,8 +20,8 @@ export default function Home() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Organization",
-            "name": "Jbbra",
-            "alternateName": "Jbbra",
+            "name": "Japan Bangla Bridge Recruiting Agency (Jbbra)",
+            "alternateName": "Japan Bangla Bridge Recruiting Agency (Jbbra)",
             "url": siteConfig.siteUrl,
             "logo": "https://bbc-images.sgp1.cdn.digitaloceanspaces.com/Jbbra%20realated%20photo/JBBRA%20Logo%20SVG%20(3).svg",
             "description": siteConfig.description,
